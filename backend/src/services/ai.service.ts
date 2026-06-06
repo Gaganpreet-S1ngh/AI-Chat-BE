@@ -22,4 +22,20 @@ export class AIService {
 
         return response.message.content;
     }
+
+    async streamAnswer(role: string , prompt: string) : Promise<any> {
+
+        const stream = await this.ollama.chat({
+            model: this.aiModel,
+            stream: true,
+            messages : [
+                {
+                    role: role as "user" | "assistant" | "system",
+                    content: prompt
+                }
+            ]
+        })
+
+        return stream;
+    }
 }

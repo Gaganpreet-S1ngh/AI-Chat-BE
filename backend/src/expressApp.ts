@@ -16,7 +16,7 @@ export const expressApp = async () => {
     res.status(200).json("I am healthy!");
   });
 
-    const ollamaClient = new Ollama({ host: 'http://127.0.0.1:11434' })
+   const ollamaClient = new Ollama({ host: 'http://127.0.0.1:11434' })
 
   const aiRoutes = new AIRoutes(new AIController(new AIService(ollamaClient)))
   app.use("/" , aiRoutes.router)
