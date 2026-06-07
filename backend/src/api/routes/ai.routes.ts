@@ -14,7 +14,7 @@ export class AIRoutes {
 
     private initializeRoutes(): void {
         this.router.post("/chat", this.aiController.chatHandler);
-        this.router.post("/chat/stream" , this.aiController.streamHandler)
+        this.router.post("/chat/stream", this.aiController.streamHandler)
     }
 
 }

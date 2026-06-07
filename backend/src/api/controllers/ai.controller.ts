@@ -36,7 +36,11 @@ export class AIController {
     }
 
 
-    streamHandler = async (req: Request, res: Response, next: NextFunction) => {
+    streamHandler = async (
+        req: Request,
+        res: Response,
+        next: NextFunction
+    ) => {
         try {
             const { role, prompt } = req.body;
 
@@ -44,36 +48,48 @@ export class AIController {
                 res.status(400).json({
                     error: "role and prompt are required",
                 });
-                return;
+
+                return
             }
 
+            // SSE headers
             res.setHeader("Content-Type", "text/event-stream");
             res.setHeader("Cache-Control", "no-cache");
             res.setHeader("Connection", "keep-alive");
 
-            // can store in buffer with a chunk size and if the buffer size >= chunk size send the data using write
-
+            // Send headers immediately
+            res.flushHeaders?.();
 
             const stream = await this.aiService.streamAnswer(role, prompt);
 
             for await (const part of stream) {
-                res.write(
-                    `data: ${JSON.stringify({
-                        content: part.message.content
-                    })}\n\n`
-                );
+                const content = part?.message?.content ?? "";
+
+                // SSE format
+                res.write(`data: ${JSON.stringify(content)}\n\n`);
             }
 
+            // completion event
             res.write("event: done\ndata: {}\n\n");
             res.end();
+
 
         } catch (error) {
             console.error(error);
 
-            res.status(500).json({
-                success: false,
-                error: "Failed to generate response",
-            });
+            if (!res.headersSent) {
+                res.status(500).json({
+                    success: false,
+                    error: "Failed to generate response",
+                });
+            } else {
+                res.write(
+                    `event: error\ndata: ${JSON.stringify({
+                        error: "Failed to generate response",
+                    })}\n\n`
+                );
+                res.end();
+            }
         }
-    }
+    };
 }
